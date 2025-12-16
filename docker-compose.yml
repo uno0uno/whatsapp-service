@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  whatsapp-service:
+    build: .
+    container_name: whatsapp-service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-xo72T5GOv0VgVOMJ4Yo5NRtNHmHh2yk36zuv8XXlms0=}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - DB_HOST=${DB_HOST:-64.23.134.78}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-saifer}
+      - DB_PASSWORD=${DB_PASSWORD:-96&Gd'2H+zjR}
+      - DB_NAME=${DB_NAME:-whatsapp-service}
+      - WHATSAPP_SESSION_PATH=/app/whatsapp-session
+      # Cloudflare R2 Configuration
+      - USE_R2_STORAGE=${USE_R2_STORAGE:-false}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ENDPOINT=${R2_ENDPOINT}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-whatsapp-sessions}
+      - R2_BUCKET_PATH=${R2_BUCKET_PATH:-sessions}
+      - R2_REGION=${R2_REGION:-auto}
+    volumes:
+      - whatsapp-session:/app/whatsapp-session
+      - ./logs:/app/logs
+    networks:
+      - whatsapp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  whatsapp-session:
+    driver: local
+
+networks:
+  whatsapp-network:
+    driver: bridge

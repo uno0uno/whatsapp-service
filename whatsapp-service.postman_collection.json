@@ -1,0 +1,444 @@
+{
+  "info": {
+    "name": "WhatsApp Service API - Multi-Cuenta",
+    "description": "Colección completa para WhatsApp Service con soporte multi-cuenta, autenticación JWT y gestión de tokens",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "whatsapp-service-v2"
+  },
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Guardar el token automáticamente",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('jwt_token', jsonData.token);",
+                  "    console.log('✓ Token JWT guardado');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Autenticarse y obtener token JWT. El token se guarda automáticamente."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Status (Single Account)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/status?clientId={{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "status"],
+              "query": [{"key": "clientId", "value": "{{client_id}}"}]
+            },
+            "description": "Obtener el estado de una cuenta específica de WhatsApp"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Status (All Accounts)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "status"]
+            },
+            "description": "Obtener el estado de todas las cuentas del usuario"
+          },
+          "response": []
+        },
+        {
+          "name": "Get QR Code",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/qr?clientId={{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "qr"],
+              "query": [{"key": "clientId", "value": "{{client_id}}"}]
+            },
+            "description": "Obtener el QR code de una cuenta específica (snapshot)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get QR Stream (SSE)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/qr-stream?clientId={{client_id}}&token={{jwt_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "qr-stream"],
+              "query": [
+                {"key": "clientId", "value": "{{client_id}}"},
+                {"key": "token", "value": "{{jwt_token}}"}
+              ]
+            },
+            "description": "Stream en tiempo real de QR codes (SSE). NOTA: Postman no renderiza bien SSE, mejor usar test-sse.html o curl con -N"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout WhatsApp",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{client_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Cerrar sesión de WhatsApp de una cuenta específica"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de autenticación y gestión de sesión"
+    },
+    {
+      "name": "Gestión de Cuentas",
+      "item": [
+        {
+          "name": "Create Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Guardar el clientId automáticamente",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.clientId) {",
+                  "        pm.environment.set('client_id', jsonData.data.clientId);",
+                  "        console.log('✓ clientId guardado:', jsonData.data.clientId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountName\": \"Mi Cuenta de WhatsApp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts"]
+            },
+            "description": "Crear una nueva cuenta de WhatsApp. El clientId se guarda automáticamente."
+          },
+          "response": []
+        },
+        {
+          "name": "List Accounts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts"]
+            },
+            "description": "Listar todas las cuentas de WhatsApp del usuario autenticado"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/{{client_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts", "{{client_id}}", "status"]
+            },
+            "description": "Obtener el estado detallado de una cuenta específica"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/{{client_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts", "{{client_id}}", "stats"]
+            },
+            "description": "Obtener estadísticas de mensajes de una cuenta"
+          },
+          "response": []
+        },
+        {
+          "name": "Initialize Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/{{client_id}}/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts", "{{client_id}}", "initialize"]
+            },
+            "description": "Reinicializar/iniciar una cuenta de WhatsApp (genera nuevo QR)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Account Name",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountName\": \"Nuevo Nombre de Cuenta\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/accounts/{{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts", "{{client_id}}"]
+            },
+            "description": "Actualizar el nombre de una cuenta"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/accounts/{{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "accounts", "{{client_id}}"]
+            },
+            "description": "Eliminar (desactivar) una cuenta de WhatsApp"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para gestionar cuentas de WhatsApp"
+    },
+    {
+      "name": "WhatsApp Mensajes",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{client_id}}\",\n  \"number\": \"573001234567\",\n  \"message\": \"Hola! Este es un mensaje de prueba desde WhatsApp Service\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "whatsapp", "send"]
+            },
+            "description": "Enviar un mensaje individual usando una cuenta específica"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Bulk Messages",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{client_id}}\",\n  \"messages\": [\n    {\n      \"number\": \"573001234567\",\n      \"message\": \"Hola Usuario 1! Este es tu mensaje personalizado\"\n    },\n    {\n      \"number\": \"573009876543\",\n      \"message\": \"Hola Usuario 2! Este es tu mensaje personalizado\"\n    },\n    {\n      \"number\": \"573005555555\",\n      \"message\": \"Hola Usuario 3! Este es tu mensaje personalizado\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/send-bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "whatsapp", "send-bulk"]
+            },
+            "description": "Enviar múltiples mensajes usando una cuenta específica"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para enviar mensajes de WhatsApp"
+    },
+    {
+      "name": "Utilidades",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Verificar que el servicio está funcionando correctamente"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de utilidad y monitoreo"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script que se ejecuta antes de cada request",
+          "console.log('→ Ejecutando request a:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script que se ejecuta después de cada request",
+          "console.log('← Status:', pm.response.code);",
+          "console.log('← Response time:', pm.response.responseTime, 'ms');"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
