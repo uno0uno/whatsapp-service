@@ -8,7 +8,7 @@ const authMiddleware = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Token no proporcionado'
+        message: 'Token not provided'
       });
     }
 
@@ -18,7 +18,7 @@ const authMiddleware = (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: 'Token inválido o expirado'
+      message: 'Invalid or expired token'
     });
   }
 };

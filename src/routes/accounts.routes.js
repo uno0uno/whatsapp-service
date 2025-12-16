@@ -3,28 +3,28 @@ const router = express.Router();
 const accountsController = require('../controllers/accountsController');
 const authMiddleware = require('../middlewares/auth');
 
-// Todas las rutas de cuentas requieren autenticación
+// All account routes require authentication
 router.use(authMiddleware);
 
-// Crear nueva cuenta de WhatsApp
+// Create new WhatsApp account
 router.post('/', accountsController.createAccount);
 
-// Listar todas las cuentas del usuario
+// List all user accounts
 router.get('/', accountsController.listAccounts);
 
-// Obtener estado de una cuenta específica
+// Get status of a specific account
 router.get('/:clientId/status', accountsController.getAccountStatus);
 
-// Obtener estadísticas de una cuenta
+// Get account statistics
 router.get('/:clientId/stats', accountsController.getAccountStats);
 
-// Inicializar/reiniciar una cuenta
+// Initialize/restart an account
 router.post('/:clientId/initialize', accountsController.initializeAccount);
 
-// Actualizar nombre de una cuenta
+// Update account name
 router.patch('/:clientId', accountsController.updateAccountName);
 
-// Eliminar (desactivar) una cuenta
+// Delete (deactivate) an account
 router.delete('/:clientId', accountsController.deleteAccount);
 
 module.exports = router;

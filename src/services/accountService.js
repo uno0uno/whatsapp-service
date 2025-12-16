@@ -1,17 +1,17 @@
 const db = require('../config/database');
 
 /**
- * Servicio para gestionar cuentas de WhatsApp en PostgreSQL
+ * Service to manage WhatsApp accounts in PostgreSQL
  */
 class AccountService {
   /**
-   * Crea una nueva cuenta de WhatsApp para un usuario
-   * @param {number} userId - ID del usuario propietario
-   * @param {string} accountName - Nombre descriptivo de la cuenta
-   * @returns {object} Cuenta creada
+   * Creates a new WhatsApp account for a user
+   * @param {number} userId - Owner user ID
+   * @param {string} accountName - Descriptive name of the account
+   * @returns {object} Created account
    */
   async createAccount(userId, accountName) {
-    // Generar un clientId único basado en userId y timestamp
+    // Generate a unique clientId based on userId and timestamp
     const clientId = `user${userId}_${Date.now()}`;
 
     const result = await db.query(
@@ -25,9 +25,9 @@ class AccountService {
   }
 
   /**
-   * Obtiene todas las cuentas de un usuario
-   * @param {number} userId - ID del usuario
-   * @returns {Array} Lista de cuentas
+   * Gets all accounts of a user
+   * @param {number} userId - User ID
+   * @returns {Array} List of accounts
    */
   async getAccountsByUser(userId) {
     const result = await db.query(
@@ -40,9 +40,9 @@ class AccountService {
   }
 
   /**
-   * Obtiene una cuenta por su clientId
-   * @param {string} clientId - ID del cliente
-   * @returns {object} Cuenta encontrada
+   * Gets an account by its clientId
+   * @param {string} clientId - Client ID
+   * @returns {object} Found account
    */
   async getAccountByClientId(clientId) {
     const result = await db.query(
@@ -53,9 +53,9 @@ class AccountService {
   }
 
   /**
-   * Obtiene una cuenta por su ID
-   * @param {number} accountId - ID de la cuenta
-   * @returns {object} Cuenta encontrada
+   * Gets an account by its ID
+   * @param {number} accountId - Account ID
+   * @returns {object} Found account
    */
   async getAccountById(accountId) {
     const result = await db.query(
@@ -66,10 +66,10 @@ class AccountService {
   }
 
   /**
-   * Verifica si un usuario es propietario de una cuenta
-   * @param {number} userId - ID del usuario
-   * @param {string} clientId - ID del cliente
-   * @returns {boolean} true si es propietario
+   * Verifies if a user is the owner of an account
+   * @param {number} userId - User ID
+   * @param {string} clientId - Client ID
+   * @returns {boolean} true if owner
    */
   async isOwner(userId, clientId) {
     const result = await db.query(
@@ -80,10 +80,10 @@ class AccountService {
   }
 
   /**
-   * Actualiza el estado de autenticación de una cuenta
-   * @param {string} clientId - ID del cliente
-   * @param {boolean} isReady - Si está lista
-   * @param {string} phoneNumber - Número de teléfono (opcional)
+   * Updates the authentication status of an account
+   * @param {string} clientId - Client ID
+   * @param {boolean} isReady - Whether it's ready
+   * @param {string} phoneNumber - Phone number (optional)
    */
   async updateAuthStatus(clientId, isReady, phoneNumber = null) {
     const updates = ['is_ready = $2'];
@@ -112,8 +112,8 @@ class AccountService {
   }
 
   /**
-   * Actualiza el timestamp del último QR generado
-   * @param {string} clientId - ID del cliente
+   * Updates the timestamp of the last QR generated
+   * @param {string} clientId - Client ID
    */
   async updateLastQR(clientId) {
     const result = await db.query(
@@ -127,8 +127,8 @@ class AccountService {
   }
 
   /**
-   * Desactiva una cuenta
-   * @param {string} clientId - ID del cliente
+   * Deactivates an account
+   * @param {string} clientId - Client ID
    */
   async deactivateAccount(clientId) {
     const result = await db.query(
@@ -142,9 +142,9 @@ class AccountService {
   }
 
   /**
-   * Elimina una cuenta (soft delete cambiando a inactiva, o hard delete)
-   * @param {string} clientId - ID del cliente
-   * @param {boolean} hardDelete - Si true, elimina permanentemente
+   * Deletes an account (soft delete by changing to inactive, or hard delete)
+   * @param {string} clientId - Client ID
+   * @param {boolean} hardDelete - If true, delete permanently
    */
   async deleteAccount(clientId, hardDelete = false) {
     if (hardDelete) {
@@ -159,9 +159,9 @@ class AccountService {
   }
 
   /**
-   * Actualiza el nombre de una cuenta
-   * @param {string} clientId - ID del cliente
-   * @param {string} accountName - Nuevo nombre
+   * Updates the name of an account
+   * @param {string} clientId - Client ID
+   * @param {string} accountName - New name
    */
   async updateAccountName(clientId, accountName) {
     const result = await db.query(
@@ -175,8 +175,8 @@ class AccountService {
   }
 
   /**
-   * Obtiene estadísticas de una cuenta
-   * @param {string} clientId - ID del cliente
+   * Gets statistics for an account
+   * @param {string} clientId - Client ID
    */
   async getAccountStats(clientId) {
     const result = await db.query(
@@ -195,8 +195,8 @@ class AccountService {
   }
 
   /**
-   * Lista todas las cuentas activas (admin)
-   * @returns {Array} Todas las cuentas activas
+   * Lists all active accounts (admin)
+   * @returns {Array} All active accounts
    */
   async getAllActiveAccounts() {
     const result = await db.query(

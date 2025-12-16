@@ -2,7 +2,7 @@
 -- WhatsApp Service - Database Schema
 -- =============================================================================
 
--- Tabla de usuarios
+-- Users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -10,13 +10,13 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(100),
     is_active BOOLEAN DEFAULT true,
-    role VARCHAR(20) DEFAULT 'user', -- 'admin' o 'user'
+    role VARCHAR(20) DEFAULT 'user', -- 'admin' or 'user'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
 );
 
--- Tabla de tokens de refresh (opcional, para invalidar tokens)
+-- Refresh tokens table (optional, for token invalidation)
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     is_revoked BOOLEAN DEFAULT false
 );
 
--- Tabla de sesiones de WhatsApp (para tracking)
+-- WhatsApp sessions table (for tracking)
 CREATE TABLE IF NOT EXISTS whatsapp_sessions (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS whatsapp_sessions (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de mensajes enviados (para auditoría)
+-- Sent messages table (for audit)
 CREATE TABLE IF NOT EXISTS whatsapp_messages (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS whatsapp_messages (
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índices para mejorar performance
+-- Indexes to improve performance
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_whatsapp_sessions_user_id ON whatsapp_sessions(us
 CREATE INDEX IF NOT EXISTS idx_whatsapp_messages_user_id ON whatsapp_messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_whatsapp_messages_phone ON whatsapp_messages(phone_number);
 
--- Trigger para actualizar updated_at automáticamente
+-- Trigger to automatically update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -75,8 +75,8 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 CREATE TRIGGER update_whatsapp_sessions_updated_at BEFORE UPDATE ON whatsapp_sessions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Comentarios en las tablas
-COMMENT ON TABLE users IS 'Usuarios del sistema con sus credenciales';
-COMMENT ON TABLE refresh_tokens IS 'Tokens de refresh para autenticación JWT';
-COMMENT ON TABLE whatsapp_sessions IS 'Sesiones activas de WhatsApp por usuario';
-COMMENT ON TABLE whatsapp_messages IS 'Auditoría de mensajes enviados por WhatsApp';
+-- Table comments
+COMMENT ON TABLE users IS 'System users with their credentials';
+COMMENT ON TABLE refresh_tokens IS 'Refresh tokens for JWT authentication';
+COMMENT ON TABLE whatsapp_sessions IS 'Active WhatsApp sessions per user';
+COMMENT ON TABLE whatsapp_messages IS 'Audit of messages sent via WhatsApp';

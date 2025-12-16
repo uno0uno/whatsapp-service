@@ -13,32 +13,32 @@ const pool = new Pool({
 });
 
 pool.on('error', (err, client) => {
-  console.error('Error inesperado en cliente de PostgreSQL', err);
+  console.error('Unexpected error in PostgreSQL client', err);
 });
 
-// Función helper para hacer queries
+// Helper function to execute queries
 const query = async (text, params) => {
   try {
     const res = await pool.query(text, params);
     return res;
   } catch (error) {
-    console.error('Error en query:', error);
+    console.error('Error in query:', error);
     throw error;
   }
 };
 
-// Función para obtener un cliente del pool (para transacciones)
+// Function to get a client from the pool (for transactions)
 const getClient = async () => {
   const client = await pool.connect();
   const query = client.query;
   const release = client.release;
 
-  // Set timeout de 5 segundos
+  // Set 5 second timeout
   const timeout = setTimeout(() => {
-    console.error('Un cliente ha estado checado por más de 5 segundos!');
+    console.error('A client has been checked out for more than 5 seconds!');
   }, 5000);
 
-  // Monkey patch para hacer tracking del release
+  // Monkey patch to track the release
   client.release = () => {
     clearTimeout(timeout);
     client.query = query;

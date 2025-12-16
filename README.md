@@ -1,50 +1,50 @@
 # WhatsApp Service API
 
-Servicio REST API para enviar mensajes de WhatsApp con autenticación JWT, PostgreSQL y soporte para Docker.
+REST API service for sending WhatsApp messages with JWT authentication, PostgreSQL, and Docker support.
 
-## Características
+## Features
 
-- ✅ Autenticación con JWT y base de datos PostgreSQL
-- ✅ Sistema de usuarios con roles (admin/user)
-- ✅ Registro de nuevos usuarios
-- ✅ Envío de mensajes individuales
-- ✅ Envío masivo de mensajes
-- ✅ Auditoría de mensajes enviados
-- ✅ Containerizado con Docker
-- ✅ QR Code para autenticación de WhatsApp
-- ✅ Gestión de sesión de WhatsApp
+- ✅ JWT authentication with PostgreSQL database
+- ✅ User system with roles (admin/user)
+- ✅ New user registration
+- ✅ Individual message sending
+- ✅ Bulk message sending
+- ✅ Message audit logging
+- ✅ Containerized with Docker
+- ✅ QR Code for WhatsApp authentication
+- ✅ WhatsApp session management
 
-## Requisitos
+## Requirements
 
-- Node.js 18+ (para desarrollo local)
+- Node.js 18+ (for local development)
 - PostgreSQL 12+
-- Docker y Docker Compose (opcional)
+- Docker and Docker Compose (optional)
 
-## Instalación
+## Installation
 
-### 1. Clonar o acceder al directorio:
+### 1. Clone or access the directory:
 ```bash
 cd whatsapp-service
 ```
 
-### 2. Instalar dependencias:
+### 2. Install dependencies:
 ```bash
 npm install
 ```
 
-### 3. Configurar variables de entorno:
+### 3. Configure environment variables:
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env` con tus configuraciones:
+Edit `.env` with your settings:
 ```env
 # Server
 PORT=3000
 NODE_ENV=development
 
 # JWT
-JWT_SECRET=tu_secret_super_seguro
+JWT_SECRET=your_super_secure_secret
 
 # Database
 DB_HOST=64.23.134.78
@@ -55,32 +55,32 @@ DB_NAME=whatsapp-service
 
 # Admin User
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=tu_password_seguro
+ADMIN_PASSWORD=your_secure_password
 ADMIN_EMAIL=admin@whatsapp-service.com
 ```
 
-### 4. Configurar Base de Datos
+### 4. Configure Database
 
-La base de datos **ya está creada** (`whatsapp-service`) con las siguientes tablas:
+The database **is already created** (`whatsapp-service`) with the following tables:
 
-- **users** - Usuarios del sistema
-- **refresh_tokens** - Tokens de refresh JWT
-- **whatsapp_sessions** - Sesiones de WhatsApp
-- **whatsapp_messages** - Auditoría de mensajes
+- **users** - System users
+- **refresh_tokens** - JWT refresh tokens
+- **whatsapp_sessions** - WhatsApp sessions
+- **whatsapp_messages** - Message audit logs
 
-### 5. Crear usuario administrador:
+### 5. Create admin user:
 ```bash
 npm run create:admin
 ```
 
-### 6. Iniciar el servidor:
+### 6. Start the server:
 ```bash
 npm run dev
 ```
 
-## Estructura de la Base de Datos
+## Database Structure
 
-### Tabla `users`
+### `users` Table
 ```sql
 - id (SERIAL PRIMARY KEY)
 - username (VARCHAR UNIQUE)
@@ -88,13 +88,13 @@ npm run dev
 - password_hash (VARCHAR)
 - full_name (VARCHAR)
 - is_active (BOOLEAN)
-- role (VARCHAR) -- 'admin' o 'user'
+- role (VARCHAR) -- 'admin' or 'user'
 - created_at (TIMESTAMP)
 - updated_at (TIMESTAMP)
 - last_login (TIMESTAMP)
 ```
 
-### Tabla `whatsapp_messages`
+### `whatsapp_messages` Table
 ```sql
 - id (SERIAL PRIMARY KEY)
 - user_id (INTEGER FK)
@@ -106,22 +106,22 @@ npm run dev
 - sent_at (TIMESTAMP)
 ```
 
-## Uso de la API
+## API Usage
 
-### 1. Registro de Usuario (Opcional)
+### 1. User Registration (Optional)
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "usuario1",
-    "email": "usuario1@example.com",
+    "username": "user1",
+    "email": "user1@example.com",
     "password": "password123",
-    "fullName": "Usuario Uno"
+    "fullName": "User One"
   }'
 ```
 
-### 2. Login (Obtener Token JWT)
+### 2. Login (Get JWT Token)
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
@@ -132,7 +132,7 @@ curl -X POST http://localhost:3000/api/auth/login \
   }'
 ```
 
-Respuesta:
+Response:
 ```json
 {
   "success": true,
@@ -142,210 +142,210 @@ Respuesta:
     "id": 1,
     "username": "admin",
     "email": "admin@whatsapp-service.com",
-    "fullName": "Administrador",
+    "fullName": "Administrator",
     "role": "admin"
   }
 }
 ```
 
-### 3. Obtener QR Code para WhatsApp
+### 3. Get QR Code for WhatsApp
 
 ```bash
 curl -X GET http://localhost:3000/api/auth/qr \
-  -H "Authorization: Bearer TU_TOKEN_JWT"
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-El QR Code viene en formato base64. Puedes mostrarlo en un navegador o convertirlo a imagen.
+The QR Code comes in base64 format. You can display it in a browser or convert it to an image.
 
-### 4. Verificar Estado de WhatsApp
+### 4. Check WhatsApp Status
 
 ```bash
 curl -X GET http://localhost:3000/api/auth/status \
-  -H "Authorization: Bearer TU_TOKEN_JWT"
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-### 5. Enviar Mensaje Individual
+### 5. Send Individual Message
 
 ```bash
 curl -X POST http://localhost:3000/api/whatsapp/send \
-  -H "Authorization: Bearer TU_TOKEN_JWT" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "number": "573001234567",
-    "message": "Hola, este es un mensaje de prueba"
+    "message": "Hello, this is a test message"
   }'
 ```
 
-**NOTA:** Todos los mensajes se guardan en la base de datos para auditoría.
+**NOTE:** All messages are automatically saved to the database for auditing.
 
-### 6. Enviar Mensajes Masivos
+### 6. Send Bulk Messages
 
 ```bash
 curl -X POST http://localhost:3000/api/whatsapp/send-bulk \
-  -H "Authorization: Bearer TU_TOKEN_JWT" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [
       {
         "number": "573001234567",
-        "message": "Hola usuario 1"
+        "message": "Hello user 1"
       },
       {
         "number": "573009876543",
-        "message": "Hola usuario 2"
+        "message": "Hello user 2"
       }
     ]
   }'
 ```
 
-### 7. Cerrar Sesión de WhatsApp
+### 7. Logout from WhatsApp
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/logout \
-  -H "Authorization: Bearer TU_TOKEN_JWT"
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-## Endpoints Disponibles
+## Available Endpoints
 
-| Método | Endpoint | Autenticación | Descripción |
-|--------|----------|---------------|-------------|
-| POST | `/api/auth/register` | No | Registrar nuevo usuario |
-| POST | `/api/auth/login` | No | Obtener token JWT |
-| GET | `/api/auth/qr` | Sí | Obtener QR code de WhatsApp |
-| GET | `/api/auth/status` | Sí | Estado de WhatsApp |
-| POST | `/api/auth/logout` | Sí | Cerrar sesión de WhatsApp |
-| POST | `/api/whatsapp/send` | Sí | Enviar mensaje individual |
-| POST | `/api/whatsapp/send-bulk` | Sí | Enviar mensajes masivos |
-| GET | `/api/health` | No | Health check del servicio |
+| Method | Endpoint | Authentication | Description |
+|--------|----------|----------------|-------------|
+| POST | `/api/auth/register` | No | Register new user |
+| POST | `/api/auth/login` | No | Get JWT token |
+| GET | `/api/auth/qr` | Yes | Get WhatsApp QR code |
+| GET | `/api/auth/status` | Yes | WhatsApp status |
+| POST | `/api/auth/logout` | Yes | Logout from WhatsApp |
+| POST | `/api/whatsapp/send` | Yes | Send individual message |
+| POST | `/api/whatsapp/send-bulk` | Yes | Send bulk messages |
+| GET | `/api/health` | No | Service health check |
 
-## Sistema de Autenticación
+## Authentication System
 
-### Flujo Completo
+### Complete Flow
 
-1. **Registro/Login** → Obtener token JWT
-2. **Token en Header** → `Authorization: Bearer TOKEN`
-3. **Token incluye:**
-   - ID del usuario
+1. **Register/Login** → Get JWT token
+2. **Token in Header** → `Authorization: Bearer TOKEN`
+3. **Token includes:**
+   - User ID
    - Username
    - Role (admin/user)
-4. **Expiración:** Configurable en `.env` (default: 24h)
+4. **Expiration:** Configurable in `.env` (default: 24h)
 
-### Roles de Usuario
+### User Roles
 
-- **admin**: Acceso completo
-- **user**: Usuario regular (puede enviar mensajes)
+- **admin**: Full access
+- **user**: Regular user (can send messages)
 
-## Formato de Números
+## Phone Number Format
 
-Los números de teléfono deben incluir el código de país sin el símbolo +. Ejemplos:
+Phone numbers must include the country code without the + symbol. Examples:
 
 - Colombia: `573001234567`
-- México: `525512345678`
-- España: `34612345678`
+- Mexico: `525512345678`
+- Spain: `34612345678`
 
-## Flujo de Trabajo Completo
+## Complete Workflow
 
-1. **Instalar dependencias:** `npm install`
-2. **Crear archivo .env** con credenciales
-3. **Crear usuario admin:** `npm run create:admin`
-4. **Iniciar servicio:** `npm run dev`
-5. **Login** para obtener token JWT
-6. **Obtener QR Code** con el token
-7. **Escanear QR** con WhatsApp en tu teléfono
-8. **Verificar estado** hasta que `isReady` sea `true`
-9. **Enviar mensajes** usando el token
+1. **Install dependencies:** `npm install`
+2. **Create .env file** with credentials
+3. **Create admin user:** `npm run create:admin`
+4. **Start service:** `npm run dev`
+5. **Login** to get JWT token
+6. **Get QR Code** with the token
+7. **Scan QR** with WhatsApp on your phone
+8. **Check status** until `isReady` is `true`
+9. **Send messages** using the token
 
-## Credenciales por Defecto
+## Default Credentials
 
-Usuario administrador creado:
+Admin user created:
 - **Username:** `admin`
 - **Password:** `Admin2024!`
 - **Email:** `admin@whatsapp-service.com`
 
-⚠️ **IMPORTANTE:** Cambia estas credenciales en producción.
+⚠️ **IMPORTANT:** Change these credentials in production.
 
-## Scripts Disponibles
+## Available Scripts
 
 ```bash
-npm run dev              # Iniciar en modo desarrollo
-npm run start            # Iniciar en producción
-npm run create:admin     # Crear usuario administrador
-npm run docker:build     # Construir imagen Docker
-npm run docker:run       # Ejecutar con Docker Compose
+npm run dev              # Start in development mode
+npm run start            # Start in production
+npm run create:admin     # Create admin user
+npm run docker:build     # Build Docker image
+npm run docker:run       # Run with Docker Compose
 ```
 
-## Variables de Entorno
+## Environment Variables
 
-| Variable | Descripción | Default |
+| Variable | Description | Default |
 |----------|-------------|---------|
-| `PORT` | Puerto del servidor | `3000` |
-| `NODE_ENV` | Entorno de ejecución | `development` |
-| `JWT_SECRET` | Secreto para JWT | (requerido) |
-| `JWT_EXPIRES_IN` | Tiempo de expiración del token | `24h` |
-| `DB_HOST` | Host de PostgreSQL | `localhost` |
-| `DB_PORT` | Puerto de PostgreSQL | `5432` |
-| `DB_USER` | Usuario de PostgreSQL | (requerido) |
-| `DB_PASSWORD` | Password de PostgreSQL | (requerido) |
-| `DB_NAME` | Nombre de la base de datos | `whatsapp-service` |
-| `ADMIN_USERNAME` | Username del admin | `admin` |
-| `ADMIN_PASSWORD` | Password del admin | (requerido) |
-| `WHATSAPP_SESSION_PATH` | Path para sesión de WhatsApp | `./whatsapp-session` |
+| `PORT` | Server port | `3000` |
+| `NODE_ENV` | Runtime environment | `development` |
+| `JWT_SECRET` | Secret for JWT | (required) |
+| `JWT_EXPIRES_IN` | Token expiration time | `24h` |
+| `DB_HOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_USER` | PostgreSQL user | (required) |
+| `DB_PASSWORD` | PostgreSQL password | (required) |
+| `DB_NAME` | Database name | `whatsapp-service` |
+| `ADMIN_USERNAME` | Admin username | `admin` |
+| `ADMIN_PASSWORD` | Admin password | (required) |
+| `WHATSAPP_SESSION_PATH` | WhatsApp session path | `./whatsapp-session` |
 
-## Auditoría de Mensajes
+## Message Auditing
 
-Todos los mensajes enviados se guardan automáticamente en la tabla `whatsapp_messages` con:
-- Usuario que envió
-- Número destinatario
-- Mensaje
-- ID del mensaje de WhatsApp
-- Estado (sent/failed)
+All sent messages are automatically saved to the `whatsapp_messages` table with:
+- Sending user
+- Recipient number
+- Message content
+- WhatsApp message ID
+- Status (sent/failed)
 - Timestamp
 
-## Seguridad
+## Security
 
-- ✅ Contraseñas hasheadas con bcrypt (10 rounds)
-- ✅ JWT para autenticación stateless
-- ✅ Roles de usuario
-- ✅ Validación de usuarios activos
-- ✅ Endpoints protegidos
-- ✅ Auditoría de acciones
+- ✅ Passwords hashed with bcrypt (10 rounds)
+- ✅ JWT for stateless authentication
+- ✅ User roles
+- ✅ Active user validation
+- ✅ Protected endpoints
+- ✅ Action auditing
 
 ## Troubleshooting
 
-### Error de conexión a PostgreSQL
-- Verifica las credenciales en `.env`
-- Verifica que PostgreSQL esté corriendo
-- Verifica que la base de datos `whatsapp-service` exista
+### PostgreSQL connection error
+- Verify credentials in `.env`
+- Verify that PostgreSQL is running
+- Verify that the `whatsapp-service` database exists
 
-### El QR code no aparece
-- Espera unos segundos y vuelve a llamar al endpoint
-- Verifica los logs del servidor
+### QR code doesn't appear
+- Wait a few seconds and call the endpoint again
+- Check server logs
 
-### Error "WhatsApp client no está listo"
-- Primero debes escanear el QR code
-- Verifica el estado con `/api/auth/status`
+### Error "WhatsApp client is not ready"
+- You must first scan the QR code
+- Check status with `/api/auth/status`
 
-### Error de autenticación
-- Verifica que el token JWT sea válido
-- Verifica el header: `Authorization: Bearer TOKEN`
-- El token expira según `JWT_EXPIRES_IN`
+### Authentication error
+- Verify that the JWT token is valid
+- Verify the header: `Authorization: Bearer TOKEN`
+- Token expires according to `JWT_EXPIRES_IN`
 
 ## Docker
 
-Para ejecutar con Docker:
+To run with Docker:
 
 ```bash
 docker-compose up -d
 ```
 
-El contenedor incluye:
-- Servicio Node.js
-- Volumen persistente para sesión de WhatsApp
+The container includes:
+- Node.js service
+- Persistent volume for WhatsApp session
 - Health checks
 
-## Desarrollo
+## Development
 
-Estructura del proyecto:
+Project structure:
 ```
 whatsapp-service/
 ├── database/
@@ -377,6 +377,6 @@ whatsapp-service/
 └── docker-compose.yml
 ```
 
-## Licencia
+## License
 
 MIT

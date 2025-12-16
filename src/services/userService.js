@@ -5,7 +5,7 @@ class UserService {
   async createUser(userData) {
     const { username, email, password, fullName, role = 'user' } = userData;
 
-    // Hash de la contraseña
+    // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
     const query = `
@@ -21,7 +21,7 @@ class UserService {
       return result.rows[0];
     } catch (error) {
       if (error.code === '23505') { // Unique violation
-        throw new Error('Usuario o email ya existe');
+        throw new Error('User or email already exists');
       }
       throw error;
     }
@@ -78,7 +78,7 @@ class UserService {
     });
 
     if (fields.length === 0) {
-      throw new Error('No hay campos válidos para actualizar');
+      throw new Error('No valid fields to update');
     }
 
     values.push(userId);

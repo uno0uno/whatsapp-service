@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Script para crear usuario administrador
- * Uso: node scripts/createAdmin.js
+ * Script to create admin user
+ * Usage: node scripts/createAdmin.js
  */
 
 require('dotenv').config();
@@ -11,54 +11,54 @@ const db = require('../src/config/database');
 
 async function createAdminUser() {
   try {
-    console.log('🔧 Creando usuario administrador...\n');
+    console.log('Creating admin user...\n');
 
     const adminData = {
       username: process.env.ADMIN_USERNAME || 'admin',
       email: process.env.ADMIN_EMAIL || 'admin@whatsapp-service.com',
       password: process.env.ADMIN_PASSWORD || 'admin123',
-      fullName: 'Administrador',
+      fullName: 'Administrator',
       role: 'admin'
     };
 
-    // Verificar si ya existe
+    // Check if it already exists
     const existingUser = await userService.findByUsername(adminData.username);
 
     if (existingUser) {
-      console.log('⚠️  El usuario admin ya existe:');
+      console.log('Admin user already exists:');
       console.log(`   Username: ${existingUser.username}`);
       console.log(`   Email: ${existingUser.email}`);
       console.log(`   Role: ${existingUser.role}`);
       console.log(`   Created: ${existingUser.created_at}`);
-      console.log('\n✅ No se requiere crear nuevo usuario admin\n');
+      console.log('\nNo need to create new admin user\n');
       process.exit(0);
     }
 
-    // Crear usuario admin
+    // Create admin user
     const user = await userService.createUser(adminData);
 
-    console.log('✅ Usuario administrador creado exitosamente!\n');
-    console.log('Detalles del usuario:');
+    console.log('Admin user created successfully!\n');
+    console.log('User details:');
     console.log(`   ID: ${user.id}`);
     console.log(`   Username: ${user.username}`);
     console.log(`   Email: ${user.email}`);
     console.log(`   Role: ${user.role}`);
     console.log(`   Created: ${user.created_at}`);
-    console.log('\n📝 Credenciales de acceso:');
+    console.log('\nAccess credentials:');
     console.log(`   Username: ${adminData.username}`);
     console.log(`   Password: ${adminData.password}`);
-    console.log('\n⚠️  IMPORTANTE: Cambia la contraseña después del primer login\n');
+    console.log('\nIMPORTANT: Change the password after first login\n');
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error creando usuario admin:', error.message);
+    console.error('Error creating admin user:', error.message);
     console.error(error);
     process.exit(1);
   } finally {
-    // Cerrar pool de conexiones
+    // Close connection pool
     await db.pool.end();
   }
 }
 
-// Ejecutar
+// Execute
 createAdminUser();

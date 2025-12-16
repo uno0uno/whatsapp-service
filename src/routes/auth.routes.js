@@ -4,12 +4,12 @@ const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/auth');
 const authSSEMiddleware = require('../middlewares/authSSE');
 
-// Rutas públicas
+// Public routes
 router.post('/login', authController.login);
 
-// Rutas protegidas
+// Protected routes
 router.get('/qr', authMiddleware, authController.getQRCode);
-router.get('/qr-stream', authSSEMiddleware, authController.getQRStream); // SSE con query param
+router.get('/qr-stream', authSSEMiddleware, authController.getQRStream); // SSE with query param
 router.get('/status', authMiddleware, authController.getStatus);
 router.post('/logout', authMiddleware, authController.logout);
 

@@ -11,49 +11,49 @@ class WhatsAppController {
       if (!clientId) {
         return res.status(400).json({
           success: false,
-          message: 'clientId es requerido'
+          message: 'clientId is required'
         });
       }
 
       if (!number || !message) {
         return res.status(400).json({
           success: false,
-          message: 'Número y mensaje son requeridos'
+          message: 'Number and message are required'
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para usar esta cuenta'
+          message: 'You do not have permission to use this account'
         });
       }
 
-      // Validar que WhatsApp esté listo
+      // Validate that WhatsApp is ready
       const status = whatsappService.getStatus(clientId);
       if (!status.exists) {
         return res.status(404).json({
           success: false,
-          message: 'Cliente no existe. Debes inicializarlo primero.'
+          message: 'Client does not exist. You must initialize it first.'
         });
       }
 
       if (!status.isReady) {
         return res.status(503).json({
           success: false,
-          message: 'WhatsApp no está listo. Escanea el QR code primero.',
+          message: 'WhatsApp is not ready. Scan the QR code first.',
           status
         });
       }
 
       const result = await whatsappService.sendMessage(clientId, number, message);
 
-      // Obtener account_id para el log
+      // Get account_id for logging
       const account = await accountService.getAccountByClientId(clientId);
 
-      // Guardar en base de datos
+      // Save to database
       await messageService.logMessage({
         userId,
         accountId: account.id,
@@ -65,13 +65,13 @@ class WhatsAppController {
 
       res.json({
         success: true,
-        message: 'Mensaje enviado correctamente',
+        message: 'Message sent successfully',
         data: result
       });
     } catch (error) {
-      console.error('Error enviando mensaje:', error);
+      console.error('Error sending message:', error);
 
-      // Guardar error en base de datos
+      // Save error to database
       try {
         const account = await accountService.getAccountByClientId(req.body.clientId);
         await messageService.logMessage({
@@ -102,39 +102,39 @@ class WhatsAppController {
       if (!clientId) {
         return res.status(400).json({
           success: false,
-          message: 'clientId es requerido'
+          message: 'clientId is required'
         });
       }
 
       if (!messages || !Array.isArray(messages)) {
         return res.status(400).json({
           success: false,
-          message: 'Se requiere un array de mensajes con formato: [{number, message}]'
+          message: 'An array of messages with format is required: [{number, message}]'
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para usar esta cuenta'
+          message: 'You do not have permission to use this account'
         });
       }
 
-      // Validar que WhatsApp esté listo
+      // Validate that WhatsApp is ready
       const status = whatsappService.getStatus(clientId);
       if (!status.exists) {
         return res.status(404).json({
           success: false,
-          message: 'Cliente no existe. Debes inicializarlo primero.'
+          message: 'Client does not exist. You must initialize it first.'
         });
       }
 
       if (!status.isReady) {
         return res.status(503).json({
           success: false,
-          message: 'WhatsApp no está listo. Escanea el QR code primero.',
+          message: 'WhatsApp is not ready. Scan the QR code first.',
           status
         });
       }
@@ -142,7 +142,7 @@ class WhatsAppController {
       const results = [];
       const errors = [];
 
-      // Obtener account_id para el log
+      // Get account_id for logging
       const account = await accountService.getAccountByClientId(clientId);
 
       for (const msg of messages) {
@@ -150,7 +150,7 @@ class WhatsAppController {
           if (!msg.number || !msg.message) {
             errors.push({
               message: msg,
-              error: 'Número o mensaje faltante'
+              error: 'Number or message missing'
             });
             continue;
           }
@@ -158,7 +158,7 @@ class WhatsAppController {
           const result = await whatsappService.sendMessage(clientId, msg.number, msg.message);
           results.push(result);
 
-          // Guardar en base de datos
+          // Save to database
           await messageService.logMessage({
             userId,
             accountId: account.id,
@@ -168,7 +168,7 @@ class WhatsAppController {
             status: 'sent'
           });
 
-          // Delay entre mensajes para evitar bloqueo
+          // Delay between messages to avoid blocking
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
           errors.push({
@@ -191,14 +191,14 @@ class WhatsAppController {
 
       res.json({
         success: true,
-        message: `${results.length} mensajes enviados, ${errors.length} errores`,
+        message: `${results.length} messages sent, ${errors.length} errors`,
         data: {
           sent: results,
           errors
         }
       });
     } catch (error) {
-      console.error('Error enviando mensajes bulk:', error);
+      console.error('Error sending bulk messages:', error);
       res.status(500).json({
         success: false,
         message: error.message

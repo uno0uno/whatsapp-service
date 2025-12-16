@@ -23,7 +23,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     success: false,
-    message: 'Error interno del servidor'
+    message: 'Internal server error'
   });
 });
 
@@ -31,28 +31,28 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Ruta no encontrada'
+    message: 'Route not found'
   });
 });
 
-// Inicializar servidor
+// Initialize server
 const startServer = async () => {
   try {
-    // Iniciar servidor Express
+    // Start Express server
     app.listen(config.port, () => {
       console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║                                                        ║
-║      WhatsApp Service API - Corriendo                 ║
-║      (Modo Multi-Cuenta)                               ║
+║      WhatsApp Service API - Running                   ║
+║      (Multi-Account Mode)                              ║
 ║                                                        ║
-║      Puerto: ${config.port}                                     ║
-║      Entorno: ${config.nodeEnv}                            ║
+║      Port: ${config.port}                                       ║
+║      Environment: ${config.nodeEnv}                         ║
 ║                                                        ║
-║      Endpoints principales:                            ║
+║      Main Endpoints:                                   ║
 ║      POST /api/auth/login                              ║
-║      POST /api/accounts (crear cuenta)                 ║
-║      GET  /api/accounts (listar cuentas)               ║
+║      POST /api/accounts (create account)               ║
+║      GET  /api/accounts (list accounts)                ║
 ║      POST /api/accounts/:id/initialize                 ║
 ║      GET  /api/auth/qr?clientId=...                    ║
 ║      GET  /api/auth/qr-stream?clientId=...             ║
@@ -60,44 +60,44 @@ const startServer = async () => {
 ║      POST /api/whatsapp/send                           ║
 ║      POST /api/whatsapp/send-bulk                      ║
 ║                                                        ║
-║      ℹ️  Las cuentas de WhatsApp se inicializan        ║
-║         bajo demanda mediante /api/accounts            ║
+║      ℹ️  WhatsApp accounts are initialized             ║
+║         on demand via /api/accounts                    ║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
       `);
-      console.log('✓ Servidor listo para gestionar múltiples cuentas de WhatsApp');
+      console.log('✓ Server ready to manage multiple WhatsApp accounts');
     });
 
   } catch (error) {
-    console.error('Error iniciando el servidor:', error);
+    console.error('Error starting server:', error);
     process.exit(1);
   }
 };
 
-// Manejo de señales de terminación
+// Handling termination signals
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM recibido. Cerrando servidor...');
-  // Cerrar todas las sesiones de WhatsApp
+  console.log('SIGTERM received. Shutting down server...');
+  // Close all WhatsApp sessions
   const clientIds = whatsappService.listClients();
   for (const clientId of clientIds) {
     try {
       await whatsappService.logout(clientId);
     } catch (error) {
-      console.error(`Error cerrando ${clientId}:`, error.message);
+      console.error(`Error closing ${clientId}:`, error.message);
     }
   }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT recibido. Cerrando servidor...');
-  // Cerrar todas las sesiones de WhatsApp
+  console.log('SIGINT received. Shutting down server...');
+  // Close all WhatsApp sessions
   const clientIds = whatsappService.listClients();
   for (const clientId of clientIds) {
     try {
       await whatsappService.logout(clientId);
     } catch (error) {
-      console.error(`Error cerrando ${clientId}:`, error.message);
+      console.error(`Error closing ${clientId}:`, error.message);
     }
   }
   process.exit(0);

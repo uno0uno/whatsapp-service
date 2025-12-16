@@ -2,11 +2,11 @@ const accountService = require('../services/accountService');
 const whatsappService = require('../services/whatsappService');
 
 /**
- * Controller para gestionar cuentas de WhatsApp
+ * Controller to manage WhatsApp accounts
  */
 class AccountsController {
   /**
-   * Crea una nueva cuenta de WhatsApp para el usuario autenticado
+   * Creates a new WhatsApp account for the authenticated user
    * POST /api/accounts
    * Body: { accountName: string }
    */
@@ -18,21 +18,21 @@ class AccountsController {
       if (!accountName) {
         return res.status(400).json({
           success: false,
-          message: 'accountName es requerido'
+          message: 'accountName is required'
         });
       }
 
-      // Crear cuenta en la base de datos
+      // Create account in database
       const account = await accountService.createAccount(userId, accountName);
 
-      // Inicializar el cliente de WhatsApp en background (sin await)
+      // Initialize WhatsApp client in background (without await)
       whatsappService.initializeClient(account.client_id).catch(error => {
-        console.error(`[${account.client_id}] Error en inicialización background:`, error);
+        console.error(`[${account.client_id}] Error in background initialization:`, error);
       });
 
       res.status(201).json({
         success: true,
-        message: 'Cuenta creada exitosamente. La inicialización se está procesando.',
+        message: 'Account created successfully. Initialization is being processed.',
         data: {
           id: account.id,
           clientId: account.client_id,
@@ -42,17 +42,17 @@ class AccountsController {
         }
       });
     } catch (error) {
-      console.error('Error creando cuenta:', error);
+      console.error('Error creating account:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al crear cuenta',
+        message: 'Error creating account',
         error: error.message
       });
     }
   }
 
   /**
-   * Lista todas las cuentas del usuario autenticado
+   * Lists all accounts of the authenticated user
    * GET /api/accounts
    */
   async listAccounts(req, res) {
@@ -60,7 +60,7 @@ class AccountsController {
       const userId = req.user.id;
       const accounts = await accountService.getAccountsByUser(userId);
 
-      // Agregar estado actual de WhatsApp
+      // Add current WhatsApp status
       const accountsWithStatus = accounts.map(account => {
         const status = whatsappService.getStatus(account.client_id);
         return {
@@ -81,17 +81,17 @@ class AccountsController {
         data: accountsWithStatus
       });
     } catch (error) {
-      console.error('Error listando cuentas:', error);
+      console.error('Error listing accounts:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al listar cuentas',
+        message: 'Error listing accounts',
         error: error.message
       });
     }
   }
 
   /**
-   * Obtiene el estado de una cuenta específica
+   * Gets the status of a specific account
    * GET /api/accounts/:clientId/status
    */
   async getAccountStatus(req, res) {
@@ -99,25 +99,25 @@ class AccountsController {
       const { clientId } = req.params;
       const userId = req.user.id;
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para acceder a esta cuenta'
+          message: 'You do not have permission to access this account'
         });
       }
 
-      // Obtener estado de la BD
+      // Get status from DB
       const account = await accountService.getAccountByClientId(clientId);
       if (!account) {
         return res.status(404).json({
           success: false,
-          message: 'Cuenta no encontrada'
+          message: 'Account not found'
         });
       }
 
-      // Obtener estado de WhatsApp
+      // Get WhatsApp status
       const whatsappStatus = whatsappService.getStatus(clientId);
 
       res.json({
@@ -131,17 +131,17 @@ class AccountsController {
         }
       });
     } catch (error) {
-      console.error('Error obteniendo estado:', error);
+      console.error('Error getting status:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener estado',
+        message: 'Error getting status',
         error: error.message
       });
     }
   }
 
   /**
-   * Obtiene estadísticas de una cuenta
+   * Gets statistics for an account
    * GET /api/accounts/:clientId/stats
    */
   async getAccountStats(req, res) {
@@ -149,12 +149,12 @@ class AccountsController {
       const { clientId } = req.params;
       const userId = req.user.id;
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para acceder a esta cuenta'
+          message: 'You do not have permission to access this account'
         });
       }
 
@@ -163,7 +163,7 @@ class AccountsController {
       if (!stats) {
         return res.status(404).json({
           success: false,
-          message: 'Cuenta no encontrada'
+          message: 'Account not found'
         });
       }
 
@@ -172,17 +172,17 @@ class AccountsController {
         data: stats
       });
     } catch (error) {
-      console.error('Error obteniendo estadísticas:', error);
+      console.error('Error getting statistics:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener estadísticas',
+        message: 'Error getting statistics',
         error: error.message
       });
     }
   }
 
   /**
-   * Actualiza el nombre de una cuenta
+   * Updates the name of an account
    * PATCH /api/accounts/:clientId
    * Body: { accountName: string }
    */
@@ -192,19 +192,19 @@ class AccountsController {
       const { accountName } = req.body;
       const userId = req.user.id;
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para modificar esta cuenta'
+          message: 'You do not have permission to modify this account'
         });
       }
 
       if (!accountName) {
         return res.status(400).json({
           success: false,
-          message: 'accountName es requerido'
+          message: 'accountName is required'
         });
       }
 
@@ -212,21 +212,21 @@ class AccountsController {
 
       res.json({
         success: true,
-        message: 'Nombre actualizado',
+        message: 'Name updated',
         data: updated
       });
     } catch (error) {
-      console.error('Error actualizando nombre:', error);
+      console.error('Error updating name:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al actualizar nombre',
+        message: 'Error updating name',
         error: error.message
       });
     }
   }
 
   /**
-   * Elimina (desactiva) una cuenta
+   * Deletes (deactivates) an account
    * DELETE /api/accounts/:clientId
    */
   async deleteAccount(req, res) {
@@ -234,40 +234,40 @@ class AccountsController {
       const { clientId } = req.params;
       const userId = req.user.id;
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para eliminar esta cuenta'
+          message: 'You do not have permission to delete this account'
         });
       }
 
-      // Cerrar sesión de WhatsApp si está activo
+      // Close WhatsApp session if active
       if (whatsappService.hasClient(clientId)) {
         await whatsappService.logout(clientId);
         await whatsappService.destroyClient(clientId);
       }
 
-      // Desactivar en la BD
+      // Deactivate in DB
       await accountService.deleteAccount(clientId, false);
 
       res.json({
         success: true,
-        message: 'Cuenta eliminada exitosamente'
+        message: 'Account deleted successfully'
       });
     } catch (error) {
-      console.error('Error eliminando cuenta:', error);
+      console.error('Error deleting account:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al eliminar cuenta',
+        message: 'Error deleting account',
         error: error.message
       });
     }
   }
 
   /**
-   * Inicializa/reinicia una cuenta (genera nuevo QR)
+   * Initializes/restarts an account (generates new QR)
    * POST /api/accounts/:clientId/initialize
    */
   async initializeAccount(req, res) {
@@ -275,35 +275,35 @@ class AccountsController {
       const { clientId } = req.params;
       const userId = req.user.id;
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para inicializar esta cuenta'
+          message: 'You do not have permission to initialize this account'
         });
       }
 
-      // Inicializar el cliente en background (sin await)
-      // La inicialización puede tardar 30-60 segundos
+      // Initialize client in background (without await)
+      // Initialization can take 30-60 seconds
       whatsappService.initializeClient(clientId).catch(error => {
-        console.error(`[${clientId}] Error en inicialización background:`, error);
+        console.error(`[${clientId}] Error in background initialization:`, error);
       });
 
-      // Responder inmediatamente
+      // Respond immediately
       res.json({
         success: true,
-        message: 'Inicialización iniciada. Usa /status o /qr-stream para monitorear el progreso.',
+        message: 'Initialization started. Use /status or /qr-stream to monitor progress.',
         data: {
           clientId,
           status: 'initializing'
         }
       });
     } catch (error) {
-      console.error('Error inicializando cuenta:', error);
+      console.error('Error initializing account:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al inicializar cuenta',
+        message: 'Error initializing account',
         error: error.message
       });
     }

@@ -16,8 +16,8 @@ class MessageService {
       const result = await db.query(query, values);
       return result.rows[0];
     } catch (error) {
-      console.error('Error guardando mensaje en DB:', error);
-      // No lanzamos error para que no afecte el envío del mensaje
+      console.error('Error saving message to DB:', error);
+      // Don't throw error so it doesn't affect message sending
       return null;
     }
   }

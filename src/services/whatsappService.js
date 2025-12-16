@@ -3,33 +3,33 @@ const qrcode = require('qrcode');
 const EventEmitter = require('events');
 
 /**
- * Servicio de WhatsApp que soporta múltiples cuentas simultáneas
- * Cada cuenta tiene su propio Client y estado independiente
+ * WhatsApp service supporting multiple simultaneous accounts
+ * Each account has its own Client and independent state
  */
 class WhatsAppService extends EventEmitter {
   constructor() {
     super();
-    // Map de clientId -> { client, qrCode, isReady, isInitialized, phoneNumber }
+    // Map of clientId -> { client, qrCode, isReady, isInitialized, phoneNumber }
     this.clients = new Map();
   }
 
   /**
-   * Inicializa un cliente de WhatsApp para un clientId específico
-   * @param {string} clientId - ID único del cliente
-   * @param {object} options - Opciones adicionales
+   * Initializes a WhatsApp client for a specific clientId
+   * @param {string} clientId - Unique client ID
+   * @param {object} options - Additional options
    */
   async initializeClient(clientId, options = {}) {
     if (this.clients.has(clientId)) {
       const clientData = this.clients.get(clientId);
       if (clientData.isInitialized) {
-        console.log(`Cliente ${clientId} ya está inicializado`);
+        console.log(`Client ${clientId} is already initialized`);
         return clientData;
       }
     }
 
-    console.log(`[${clientId}] Inicializando con LocalAuth`);
+    console.log(`[${clientId}] Initializing with LocalAuth`);
 
-    // Usar solo LocalAuth con volumen Docker
+    // Using only LocalAuth with Docker volume
     const authStrategy = new LocalAuth({
       clientId: clientId,
       dataPath: './whatsapp-session'
@@ -51,7 +51,7 @@ class WhatsAppService extends EventEmitter {
       }
     });
 
-    // Datos del cliente
+    // Client data
     const clientData = {
       client: client,
       authStrategy: authStrategy,
@@ -63,38 +63,38 @@ class WhatsAppService extends EventEmitter {
       authenticatedAt: null
     };
 
-    // Evento: QR Code generado
+    // Event: QR Code generated
     client.on('qr', async (qr) => {
       try {
         clientData.qrCode = await qrcode.toDataURL(qr);
         clientData.lastQRAt = new Date();
-        console.log(`[${clientId}] QR Code generado`);
+        console.log(`[${clientId}] QR Code generated`);
 
-        // Emitir evento para SSE con el clientId
+        // Emit event for SSE with clientId
         this.emit('qr', { clientId, qrCode: clientData.qrCode });
       } catch (err) {
-        console.error(`[${clientId}] Error generando QR:`, err);
+        console.error(`[${clientId}] Error generating QR:`, err);
       }
     });
 
-    // Evento: Cliente listo
+    // Event: Client ready
     client.on('ready', async () => {
       clientData.isReady = true;
       clientData.qrCode = null;
       clientData.authenticatedAt = new Date();
 
-      // Obtener información del número
+      // Get phone number information
       try {
         const info = client.info;
         if (info && info.wid) {
           clientData.phoneNumber = info.wid.user;
-          console.log(`[${clientId}] ✅ Listo - ${clientData.phoneNumber}`);
+          console.log(`[${clientId}] ✅ Ready - ${clientData.phoneNumber}`);
         }
       } catch (err) {
-        console.error(`[${clientId}] Error obteniendo número:`, err);
+        console.error(`[${clientId}] Error getting phone number:`, err);
       }
 
-      // Emitir evento de que está listo
+      // Emit ready event
       this.emit('ready', {
         clientId,
         phoneNumber: clientData.phoneNumber,
@@ -102,38 +102,38 @@ class WhatsAppService extends EventEmitter {
       });
     });
 
-    // Evento: Autenticado
+    // Event: Authenticated
     client.on('authenticated', () => {
-      console.log(`[${clientId}] WhatsApp autenticado correctamente`);
+      console.log(`[${clientId}] WhatsApp authenticated successfully`);
     });
 
-    // Evento: Fallo en autenticación
+    // Event: Authentication failure
     client.on('auth_failure', (msg) => {
-      console.error(`[${clientId}] Fallo en autenticación:`, msg);
+      console.error(`[${clientId}] Authentication failed:`, msg);
       clientData.isReady = false;
       this.emit('auth_failure', { clientId, error: msg });
     });
 
-    // Evento: Desconectado
+    // Event: Disconnected
     client.on('disconnected', (reason) => {
-      console.log(`[${clientId}] WhatsApp desconectado:`, reason);
+      console.log(`[${clientId}] WhatsApp disconnected:`, reason);
       clientData.isReady = false;
       clientData.qrCode = null;
       this.emit('disconnected', { clientId, reason });
     });
 
-    // Guardar en el Map
+    // Save to Map
     this.clients.set(clientId, clientData);
 
-    // Inicializar el cliente
-    console.log(`[${clientId}] 🚀 Iniciando cliente WhatsApp...`);
+    // Initialize the client
+    console.log(`[${clientId}] 🚀 Starting WhatsApp client...`);
 
     try {
       await client.initialize();
-      console.log(`[${clientId}] ✅ Cliente inicializado exitosamente`);
+      console.log(`[${clientId}] ✅ Client initialized successfully`);
       clientData.isInitialized = true;
     } catch (error) {
-      console.error(`[${clientId}] ❌ Error en inicialización:`, error);
+      console.error(`[${clientId}] ❌ Initialization error:`, error);
       throw error;
     }
 
@@ -141,31 +141,31 @@ class WhatsAppService extends EventEmitter {
   }
 
   /**
-   * Envía un mensaje usando un cliente específico
-   * @param {string} clientId - ID del cliente
-   * @param {string} number - Número de teléfono destino
-   * @param {string} message - Mensaje a enviar
+   * Sends a message using a specific client
+   * @param {string} clientId - Client ID
+   * @param {string} number - Destination phone number
+   * @param {string} message - Message to send
    */
   async sendMessage(clientId, number, message) {
     const clientData = this.clients.get(clientId);
 
     if (!clientData) {
-      throw new Error(`Cliente ${clientId} no existe. Debes inicializarlo primero.`);
+      throw new Error(`Client ${clientId} does not exist. You must initialize it first.`);
     }
 
     if (!clientData.isReady) {
-      throw new Error(`Cliente ${clientId} no está listo. Escanea el QR code primero.`);
+      throw new Error(`Client ${clientId} is not ready. Scan the QR code first.`);
     }
 
     try {
-      // Formatear número (agregar @c.us si no lo tiene)
+      // Format number (add @c.us if not present)
       const formattedNumber = number.includes('@c.us')
         ? number
         : `${number.replace(/[^0-9]/g, '')}@c.us`;
 
       const chat = await clientData.client.sendMessage(formattedNumber, message);
 
-      console.log(`[${clientId}] Mensaje enviado a ${formattedNumber}`);
+      console.log(`[${clientId}] Message sent to ${formattedNumber}`);
 
       return {
         success: true,
@@ -174,26 +174,26 @@ class WhatsAppService extends EventEmitter {
         clientId: clientId
       };
     } catch (error) {
-      console.error(`[${clientId}] Error enviando mensaje:`, error);
-      throw new Error(`Error al enviar mensaje: ${error.message}`);
+      console.error(`[${clientId}] Error sending message:`, error);
+      throw new Error(`Error sending message: ${error.message}`);
     }
   }
 
   /**
-   * Obtiene el QR Code de un cliente específico
-   * @param {string} clientId - ID del cliente
+   * Gets the QR Code of a specific client
+   * @param {string} clientId - Client ID
    */
   getQRCode(clientId) {
     const clientData = this.clients.get(clientId);
     if (!clientData) {
-      throw new Error(`Cliente ${clientId} no existe`);
+      throw new Error(`Client ${clientId} does not exist`);
     }
     return clientData.qrCode;
   }
 
   /**
-   * Obtiene el estado de un cliente específico
-   * @param {string} clientId - ID del cliente
+   * Gets the status of a specific client
+   * @param {string} clientId - Client ID
    */
   getStatus(clientId) {
     const clientData = this.clients.get(clientId);
@@ -201,7 +201,7 @@ class WhatsAppService extends EventEmitter {
     if (!clientData) {
       return {
         exists: false,
-        message: 'Cliente no existe'
+        message: 'Client does not exist'
       };
     }
 
@@ -217,7 +217,7 @@ class WhatsAppService extends EventEmitter {
   }
 
   /**
-   * Obtiene el estado de todos los clientes
+   * Gets the status of all clients
    */
   getAllStatus() {
     const statuses = {};
@@ -235,21 +235,21 @@ class WhatsAppService extends EventEmitter {
   }
 
   /**
-   * Lista todos los clientId registrados
+   * Lists all registered clientIds
    */
   listClients() {
     return Array.from(this.clients.keys());
   }
 
   /**
-   * Cierra sesión de un cliente específico
-   * @param {string} clientId - ID del cliente
+   * Logs out from a specific client
+   * @param {string} clientId - Client ID
    */
   async logout(clientId) {
     const clientData = this.clients.get(clientId);
 
     if (!clientData) {
-      throw new Error(`Cliente ${clientId} no existe`);
+      throw new Error(`Client ${clientId} does not exist`);
     }
 
     if (clientData.client) {
@@ -257,38 +257,38 @@ class WhatsAppService extends EventEmitter {
       clientData.isReady = false;
       clientData.qrCode = null;
       clientData.phoneNumber = null;
-      console.log(`[${clientId}] Sesión cerrada`);
+      console.log(`[${clientId}] Session logged out`);
     }
   }
 
   /**
-   * Destruye completamente un cliente
-   * @param {string} clientId - ID del cliente
+   * Completely destroys a client
+   * @param {string} clientId - Client ID
    */
   async destroyClient(clientId) {
     const clientData = this.clients.get(clientId);
 
     if (!clientData) {
-      throw new Error(`Cliente ${clientId} no existe`);
+      throw new Error(`Client ${clientId} does not exist`);
     }
 
     if (clientData.client) {
       await clientData.client.destroy();
-      console.log(`[${clientId}] Cliente destruido`);
+      console.log(`[${clientId}] Client destroyed`);
     }
 
     this.clients.delete(clientId);
   }
 
   /**
-   * Verifica si un cliente existe
-   * @param {string} clientId - ID del cliente
+   * Checks if a client exists
+   * @param {string} clientId - Client ID
    */
   hasClient(clientId) {
     return this.clients.has(clientId);
   }
 }
 
-// Exportar la clase (no una instancia singleton)
-// Ahora necesitaremos crear instancias o usar un patrón de gestión
+// Export the class (not a singleton instance)
+// Now we need to create instances or use a management pattern
 module.exports = new WhatsAppService();

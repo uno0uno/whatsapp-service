@@ -3,7 +3,7 @@ const router = express.Router();
 const whatsappController = require('../controllers/whatsappController');
 const authMiddleware = require('../middlewares/auth');
 
-// Todas las rutas protegidas con autenticación
+// All routes protected with authentication
 router.post('/send', authMiddleware, whatsappController.sendMessage);
 router.post('/send-bulk', authMiddleware, whatsappController.sendBulkMessages);
 

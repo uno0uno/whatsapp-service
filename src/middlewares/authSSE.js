@@ -1,16 +1,16 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/env');
 
-// Middleware especial para SSE que acepta token por query parameter
+// Special middleware for SSE that accepts token via query parameter
 const authSSEMiddleware = (req, res, next) => {
   try {
-    // Intentar obtener token del header Authorization o del query parameter
+    // Try to get token from Authorization header or query parameter
     const token = req.headers.authorization?.split(' ')[1] || req.query.token;
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Token no proporcionado'
+        message: 'Token not provided'
       });
     }
 
@@ -20,7 +20,7 @@ const authSSEMiddleware = (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: 'Token inválido o expirado'
+      message: 'Invalid or expired token'
     });
   }
 };

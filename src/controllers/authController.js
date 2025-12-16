@@ -12,42 +12,42 @@ class AuthController {
       if (!username || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Usuario y contraseña son requeridos'
+          message: 'Username and password are required'
         });
       }
 
-      // Buscar usuario en la base de datos
+      // Search for user in database
       const user = await userService.findByUsername(username);
 
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Credenciales inválidas'
+          message: 'Invalid credentials'
         });
       }
 
-      // Verificar si el usuario está activo
+      // Check if user is active
       if (!user.is_active) {
         return res.status(401).json({
           success: false,
-          message: 'Usuario inactivo. Contacta al administrador.'
+          message: 'Inactive user. Contact the administrator.'
         });
       }
 
-      // Verificar contraseña
+      // Verify password
       const isPasswordValid = await userService.verifyPassword(password, user.password_hash);
 
       if (!isPasswordValid) {
         return res.status(401).json({
           success: false,
-          message: 'Credenciales inválidas'
+          message: 'Invalid credentials'
         });
       }
 
-      // Actualizar último login
+      // Update last login
       await userService.updateLastLogin(user.id);
 
-      // Generar token JWT
+      // Generate JWT token
       const token = jwt.sign(
         {
           id: user.id,
@@ -71,10 +71,10 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('Error in login:', error);
       res.status(500).json({
         success: false,
-        message: 'Error en el servidor'
+        message: 'Server error'
       });
     }
   }
@@ -86,11 +86,11 @@ class AuthController {
       if (!username || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Usuario y contraseña son requeridos'
+          message: 'Username and password are required'
         });
       }
 
-      // Crear usuario
+      // Create user
       const user = await userService.createUser({
         username,
         email,
@@ -101,7 +101,7 @@ class AuthController {
 
       res.status(201).json({
         success: true,
-        message: 'Usuario creado exitosamente',
+        message: 'User created successfully',
         user: {
           id: user.id,
           username: user.username,
@@ -111,9 +111,9 @@ class AuthController {
         }
       });
     } catch (error) {
-      console.error('Error en registro:', error);
+      console.error('Error in registration:', error);
 
-      if (error.message === 'Usuario o email ya existe') {
+      if (error.message === 'User or email already exists') {
         return res.status(409).json({
           success: false,
           message: error.message
@@ -122,7 +122,7 @@ class AuthController {
 
       res.status(500).json({
         success: false,
-        message: 'Error en el servidor'
+        message: 'Server error'
       });
     }
   }
@@ -135,16 +135,16 @@ class AuthController {
       if (!clientId) {
         return res.status(400).json({
           success: false,
-          message: 'clientId es requerido como query parameter'
+          message: 'clientId is required as query parameter'
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para acceder a esta cuenta'
+          message: 'You do not have permission to access this account'
         });
       }
 
@@ -154,14 +154,14 @@ class AuthController {
       if (!status.exists) {
         return res.status(404).json({
           success: false,
-          message: 'Cliente no existe. Debes inicializarlo primero.'
+          message: 'Client does not exist. You must initialize it first.'
         });
       }
 
       if (!qrCode && status.isReady) {
         return res.json({
           success: true,
-          message: 'WhatsApp ya está autenticado',
+          message: 'WhatsApp is already authenticated',
           status
         });
       }
@@ -169,7 +169,7 @@ class AuthController {
       if (!qrCode) {
         return res.status(404).json({
           success: false,
-          message: 'QR Code no disponible. Espera un momento e intenta de nuevo.',
+          message: 'QR Code not available. Wait a moment and try again.',
           status
         });
       }
@@ -177,13 +177,13 @@ class AuthController {
       res.json({
         success: true,
         qrCode,
-        message: 'Escanea este QR code con WhatsApp'
+        message: 'Scan this QR code with WhatsApp'
       });
     } catch (error) {
-      console.error('Error obteniendo QR:', error);
+      console.error('Error getting QR:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener QR code'
+        message: 'Error getting QR code'
       });
     }
   }
@@ -193,7 +193,7 @@ class AuthController {
       const { clientId } = req.query;
       const userId = req.user.id;
 
-      // Si no se proporciona clientId, devolver el estado de todas las cuentas del usuario
+      // If clientId is not provided, return status of all user accounts
       if (!clientId) {
         const accounts = await accountService.getAccountsByUser(userId);
         const allStatuses = accounts.map(account => ({
@@ -208,12 +208,12 @@ class AuthController {
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para acceder a esta cuenta'
+          message: 'You do not have permission to access this account'
         });
       }
 
@@ -223,10 +223,10 @@ class AuthController {
         status
       });
     } catch (error) {
-      console.error('Error obteniendo status:', error);
+      console.error('Error getting status:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener status'
+        message: 'Error getting status'
       });
     }
   }
@@ -239,38 +239,38 @@ class AuthController {
       if (!clientId) {
         return res.status(400).json({
           success: false,
-          message: 'clientId es requerido'
+          message: 'clientId is required'
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para cerrar sesión de esta cuenta'
+          message: 'You do not have permission to logout from this account'
         });
       }
 
       await whatsappService.logout(clientId);
 
-      // Actualizar en la BD
+      // Update in DB
       await accountService.updateAuthStatus(clientId, false, null);
 
       res.json({
         success: true,
-        message: 'Sesión de WhatsApp cerrada correctamente'
+        message: 'WhatsApp session closed successfully'
       });
     } catch (error) {
-      console.error('Error en logout:', error);
+      console.error('Error in logout:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al cerrar sesión'
+        message: 'Error closing session'
       });
     }
   }
 
-  // Server-Sent Events para QR Code
+  // Server-Sent Events for QR Code
   async getQRStream(req, res) {
     try {
       const { clientId } = req.query;
@@ -279,121 +279,121 @@ class AuthController {
       if (!clientId) {
         return res.status(400).json({
           success: false,
-          message: 'clientId es requerido como query parameter'
+          message: 'clientId is required as query parameter'
         });
       }
 
-      // Verificar propiedad
+      // Verify ownership
       const isOwner = await accountService.isOwner(userId, clientId);
       if (!isOwner) {
         return res.status(403).json({
           success: false,
-          message: 'No tienes permiso para acceder a esta cuenta'
+          message: 'You do not have permission to access this account'
         });
       }
 
-      // Verificar que el cliente exista ANTES de configurar SSE
+      // Check that client exists BEFORE setting up SSE
       const status = whatsappService.getStatus(clientId);
 
       if (!status.exists) {
         return res.status(404).json({
           success: false,
-          message: 'Cliente no existe. Debes inicializarlo primero.',
+          message: 'Client does not exist. You must initialize it first.',
           clientId: clientId
         });
       }
 
-      // Configurar headers para SSE
+      // Configure headers for SSE
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('X-Accel-Buffering', 'no');
 
-      // Enviar mensaje inicial
+      // Send initial message
       res.write(`data: ${JSON.stringify({
         type: 'connected',
-        message: `Conectado al stream de QR para ${clientId}`
+        message: `Connected to QR stream for ${clientId}`
       })}\n\n`);
 
-      // Si ya está listo, enviar mensaje y cerrar
+      // If already ready, send message and close
       if (status.isReady) {
         res.write(`data: ${JSON.stringify({
           type: 'ready',
-          message: 'WhatsApp ya está autenticado',
+          message: 'WhatsApp is already authenticated',
           phoneNumber: status.phoneNumber
         })}\n\n`);
         return res.end();
       }
 
-      // Si ya hay un QR code disponible, enviarlo inmediatamente
+      // If QR code is already available, send it immediately
       const currentQR = whatsappService.getQRCode(clientId);
       if (currentQR) {
         res.write(`data: ${JSON.stringify({
           type: 'qr',
           qrCode: currentQR,
-          message: 'QR Code disponible'
+          message: 'QR Code available'
         })}\n\n`);
       }
 
-      // Listener para nuevos QR codes - filtrar por clientId
+      // Listener for new QR codes - filter by clientId
       const onQR = (data) => {
-        // Solo enviar si es para este clientId
+        // Only send if it's for this clientId
         if (data.clientId === clientId) {
           res.write(`data: ${JSON.stringify({
             type: 'qr',
             qrCode: data.qrCode,
-            message: 'Nuevo QR Code generado'
+            message: 'New QR Code generated'
           })}\n\n`);
 
-          // Actualizar timestamp en BD
+          // Update timestamp in DB
           accountService.updateLastQR(clientId).catch(err => {
-            console.error('Error actualizando lastQR:', err);
+            console.error('Error updating lastQR:', err);
           });
         }
       };
 
-      // Listener para cuando está listo - filtrar por clientId
+      // Listener for when ready - filter by clientId
       const onReady = async (data) => {
-        // Solo enviar si es para este clientId
+        // Only send if it's for this clientId
         if (data.clientId === clientId) {
           res.write(`data: ${JSON.stringify({
             type: 'ready',
-            message: 'WhatsApp autenticado correctamente',
+            message: 'WhatsApp authenticated successfully',
             phoneNumber: data.phoneNumber
           })}\n\n`);
 
-          // Actualizar en la BD
+          // Update in DB
           try {
             await accountService.updateAuthStatus(clientId, true, data.phoneNumber);
           } catch (err) {
-            console.error('Error actualizando auth status:', err);
+            console.error('Error updating auth status:', err);
           }
 
           res.end();
         }
       };
 
-      // Registrar listeners
+      // Register listeners
       whatsappService.on('qr', onQR);
       whatsappService.on('ready', onReady);
 
-      // Heartbeat cada 30 segundos
+      // Heartbeat every 30 seconds
       const heartbeat = setInterval(() => {
         res.write(':heartbeat\n\n');
       }, 30000);
 
-      // Cleanup cuando el cliente se desconecta
+      // Cleanup when client disconnects
       req.on('close', () => {
         clearInterval(heartbeat);
         whatsappService.removeListener('qr', onQR);
         whatsappService.removeListener('ready', onReady);
-        console.log(`[${clientId}] Cliente SSE desconectado`);
+        console.log(`[${clientId}] SSE client disconnected`);
       });
     } catch (error) {
-      console.error('Error en SSE:', error);
+      console.error('Error in SSE:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al establecer conexión SSE'
+        message: 'Error establishing SSE connection'
       });
     }
   }
