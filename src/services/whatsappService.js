@@ -30,10 +30,14 @@ class WhatsAppService extends EventEmitter {
     console.log(`[${clientId}] Initializing with LocalAuth`);
 
     // Using only LocalAuth with Docker volume
+    // Use absolute path to ensure consistency
+    const sessionPath = process.env.WHATSAPP_SESSION_PATH || './whatsapp-session';
     const authStrategy = new LocalAuth({
       clientId: clientId,
-      dataPath: './whatsapp-session'
+      dataPath: sessionPath
     });
+
+    console.log(`[${clientId}] Session path: ${sessionPath}`);
 
     const client = new Client({
       authStrategy: authStrategy,
@@ -286,6 +290,108 @@ class WhatsAppService extends EventEmitter {
    */
   hasClient(clientId) {
     return this.clients.has(clientId);
+  }
+
+  /**
+   * Gets all chats for a specific client
+   * @param {string} clientId - Client ID
+   * @returns {Array} List of chats with their information
+   */
+  async getAllChats(clientId) {
+    const clientData = this.clients.get(clientId);
+
+    if (!clientData) {
+      throw new Error(`Client ${clientId} does not exist`);
+    }
+
+    if (!clientData.isReady) {
+      throw new Error(`Client ${clientId} is not ready`);
+    }
+
+    try {
+      // Wait 3 seconds to ensure WhatsApp Web has fully loaded chats
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const chats = await clientData.client.getChats();
+
+      // Format chat information - extract phone numbers
+      const formattedChats = chats.map((chat) => {
+        // Extract phone number from chat ID
+        const phoneNumber = chat.id.user || chat.id._serialized.split('@')[0];
+
+        return {
+          phoneNumber: phoneNumber,
+          name: chat.name || 'Unknown',
+          isGroup: chat.isGroup,
+          unreadCount: chat.unreadCount,
+          timestamp: chat.timestamp
+        };
+      });
+
+      // Sort by timestamp (most recent first)
+      formattedChats.sort((a, b) => b.timestamp - a.timestamp);
+
+      console.log(`[${clientId}] Retrieved ${formattedChats.length} chats`);
+      return formattedChats;
+    } catch (error) {
+      console.error(`[${clientId}] Error getting chats:`, error);
+      throw new Error(`Error getting chats: ${error.message}`);
+    }
+  }
+
+  /**
+   * Gets only chats with unread messages
+   * @param {string} clientId - Client ID
+   * @returns {Array} List of chats with unread messages
+   */
+  async getUnreadChats(clientId) {
+    const clientData = this.clients.get(clientId);
+
+    if (!clientData) {
+      throw new Error(`Client ${clientId} does not exist`);
+    }
+
+    if (!clientData.isReady) {
+      throw new Error(`Client ${clientId} is not ready`);
+    }
+
+    try {
+      // Wait 3 seconds to ensure WhatsApp Web has fully loaded chats
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const chats = await clientData.client.getChats();
+
+      // Filter only chats with unread messages
+      const unreadChats = chats.filter(chat => chat.unreadCount > 0);
+
+      // Format unread chats - extract phone number and last message
+      const formattedChats = unreadChats.map((chat) => {
+        // Extract phone number from chat ID
+        const phoneNumber = chat.id.user || chat.id._serialized.split('@')[0];
+
+        return {
+          phoneNumber: phoneNumber,
+          name: chat.name || 'Unknown',
+          isGroup: chat.isGroup,
+          unreadCount: chat.unreadCount,
+          lastMessage: chat.lastMessage ? {
+            body: chat.lastMessage.body,
+            timestamp: chat.lastMessage.timestamp,
+            fromMe: chat.lastMessage.fromMe
+          } : null,
+          timestamp: chat.timestamp
+        };
+      });
+
+      // Sort by timestamp (most recent first)
+      formattedChats.sort((a, b) => b.timestamp - a.timestamp);
+
+      console.log(`[${clientId}] Retrieved ${formattedChats.length} unread chats`);
+      return formattedChats;
+    } catch (error) {
+      console.error(`[${clientId}] Error getting unread chats:`, error);
+      throw new Error(`Error getting unread chats: ${error.message}`);
+    }
   }
 }
 

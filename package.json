@@ -30,7 +30,7 @@
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
     "qrcode": "^1.5.3",
-    "whatsapp-web.js": "^1.23.0"
+    "whatsapp-web.js": "^1.26.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

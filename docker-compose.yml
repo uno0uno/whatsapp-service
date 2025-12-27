@@ -6,7 +6,7 @@ services:
     container_name: whatsapp-service
     restart: unless-stopped
     ports:
-      - "3003:3000"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000

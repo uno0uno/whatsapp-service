@@ -105,24 +105,6 @@
           "response": []
         },
         {
-          "name": "Get QR Stream (SSE)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/auth/qr-stream?clientId={{client_id}}&token={{jwt_token}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "qr-stream"],
-              "query": [
-                {"key": "clientId", "value": "{{client_id}}"},
-                {"key": "token", "value": "{{jwt_token}}"}
-              ]
-            },
-            "description": "Stream en tiempo real de QR codes (SSE). NOTA: Postman no renderiza bien SSE, mejor usar test-sse.html o curl con -N"
-          },
-          "response": []
-        },
-        {
           "name": "Logout WhatsApp",
           "request": {
             "auth": {
@@ -323,6 +305,42 @@
     {
       "name": "WhatsApp Mensajes",
       "item": [
+        {
+          "name": "Get All Chats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/chats/{{client_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "whatsapp", "chats", "{{client_id}}"]
+            },
+            "description": "Get all chats for a specific WhatsApp account with chat details, unread counts, and last messages"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Chats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{jwt_token}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/chats/{{client_id}}/unread",
+              "host": ["{{base_url}}"],
+              "path": ["api", "whatsapp", "chats", "{{client_id}}", "unread"]
+            },
+            "description": "Get only chats with unread messages for a specific WhatsApp account"
+          },
+          "response": []
+        },
         {
           "name": "Send Message",
           "request": {

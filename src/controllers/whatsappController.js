@@ -205,6 +205,125 @@ class WhatsAppController {
       });
     }
   }
+
+  async getAllChats(req, res) {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+
+      if (!clientId) {
+        return res.status(400).json({
+          success: false,
+          message: 'clientId is required'
+        });
+      }
+
+      // Verify ownership
+      const isOwner = await accountService.isOwner(userId, clientId);
+      if (!isOwner) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to use this account'
+        });
+      }
+
+      // Validate that WhatsApp is ready
+      const status = whatsappService.getStatus(clientId);
+      if (!status.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client does not exist. You must initialize it first.'
+        });
+      }
+
+      if (!status.isReady) {
+        return res.status(503).json({
+          success: false,
+          message: 'WhatsApp is not ready. Scan the QR code first.',
+          status
+        });
+      }
+
+      const chats = await whatsappService.getAllChats(clientId);
+
+      res.json({
+        success: true,
+        message: `Retrieved ${chats.length} chats`,
+        data: {
+          clientId,
+          totalChats: chats.length,
+          chats
+        }
+      });
+    } catch (error) {
+      console.error('Error getting chats:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  async getUnreadChats(req, res) {
+    try {
+      const { clientId } = req.params;
+      const userId = req.user.id;
+
+      if (!clientId) {
+        return res.status(400).json({
+          success: false,
+          message: 'clientId is required'
+        });
+      }
+
+      // Verify ownership
+      const isOwner = await accountService.isOwner(userId, clientId);
+      if (!isOwner) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to use this account'
+        });
+      }
+
+      // Validate that WhatsApp is ready
+      const status = whatsappService.getStatus(clientId);
+      if (!status.exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client does not exist. You must initialize it first.'
+        });
+      }
+
+      if (!status.isReady) {
+        return res.status(503).json({
+          success: false,
+          message: 'WhatsApp is not ready. Scan the QR code first.',
+          status
+        });
+      }
+
+      const chats = await whatsappService.getUnreadChats(clientId);
+
+      const totalUnread = chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+
+      res.json({
+        success: true,
+        message: `Retrieved ${chats.length} chats with unread messages`,
+        data: {
+          clientId,
+          totalUnreadChats: chats.length,
+          totalUnreadMessages: totalUnread,
+          chats
+        }
+      });
+    } catch (error) {
+      console.error('Error getting unread chats:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = new WhatsAppController();

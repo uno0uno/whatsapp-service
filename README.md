@@ -198,7 +198,29 @@ curl -X POST http://localhost:3000/api/whatsapp/send-bulk \
   }'
 ```
 
-### 7. Logout from WhatsApp
+### 7. Get All Chats
+
+```bash
+curl -X GET http://localhost:3000/api/whatsapp/chats/YOUR_CLIENT_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Response includes all chats with:
+- Chat ID, name, and type (group/individual)
+- Unread message count
+- Last message preview
+- Timestamp, archived, pinned, and muted status
+
+### 8. Get Unread Chats Only
+
+```bash
+curl -X GET http://localhost:3000/api/whatsapp/chats/YOUR_CLIENT_ID/unread \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Returns only chats that have unread messages, including total count of unread messages.
+
+### 9. Logout from WhatsApp
 
 ```bash
 curl -X POST http://localhost:3000/api/auth/logout \
@@ -216,6 +238,8 @@ curl -X POST http://localhost:3000/api/auth/logout \
 | POST | `/api/auth/logout` | Yes | Logout from WhatsApp |
 | POST | `/api/whatsapp/send` | Yes | Send individual message |
 | POST | `/api/whatsapp/send-bulk` | Yes | Send bulk messages |
+| GET | `/api/whatsapp/chats/:clientId` | Yes | Get all chats |
+| GET | `/api/whatsapp/chats/:clientId/unread` | Yes | Get chats with unread messages |
 | GET | `/api/health` | No | Service health check |
 
 ## Authentication System

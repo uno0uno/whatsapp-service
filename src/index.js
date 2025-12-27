@@ -55,10 +55,11 @@ const startServer = async () => {
 ║      GET  /api/accounts (list accounts)                ║
 ║      POST /api/accounts/:id/initialize                 ║
 ║      GET  /api/auth/qr?clientId=...                    ║
-║      GET  /api/auth/qr-stream?clientId=...             ║
 ║      GET  /api/auth/status?clientId=...                ║
 ║      POST /api/whatsapp/send                           ║
 ║      POST /api/whatsapp/send-bulk                      ║
+║      GET  /api/whatsapp/chats/:clientId                ║
+║      GET  /api/whatsapp/chats/:clientId/unread         ║
 ║                                                        ║
 ║      ℹ️  WhatsApp accounts are initialized             ║
 ║         on demand via /api/accounts                    ║

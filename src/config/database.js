@@ -7,9 +7,11 @@ const pool = new Pool({
   user: config.db.user,
   password: config.db.password,
   database: config.db.database,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  max: 5, // Reduced pool size for remote DB
+  min: 0, // Don't keep idle connections
+  idleTimeoutMillis: 10000, // Close idle connections after 10 seconds
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: true, // Allow pool to close when idle
 });
 
 pool.on('error', (err, client) => {
